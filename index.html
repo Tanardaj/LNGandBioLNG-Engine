@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiger Automotive - Fuel Conversion Analytics</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        /* Reset and base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 25%, #1a1a1a 50%, #2c2c2c 75%, #1e1e1e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Main container with glassmorphism effect */
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header section */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Chart grid layout */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .chart-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            transition: transform 0.3s ease;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .chart-title {
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        /* Key takeaways section */
+        .takeaways {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .takeaways h2 {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 25px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .takeaways-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .takeaway-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .takeaway-item h3 {
+            color: #4CAF50;
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .takeaway-item p {
+            color: white;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        /* Custom SVG icons */
+        .icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1024px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .dashboard-container {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+            
+            .takeaways-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .takeaways {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .chart-card {
+                padding: 15px;
+            }
+            
+            .chart-container {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header Section -->
+        <div class="header">
+            <h1>Tiger Automotive Fuel Conversion Analytics</h1>
+            <p>Comprehensive analysis of LNG, BioLNG, CNG & BioCNG engine conversion performance across ASEAN markets</p>
+        </div>
+
+        <!-- Chart Grid -->
+        <div class="chart-grid">
+            <!-- Regional Conversions Chart -->
+            <div class="chart-card">
+                <h3 class="chart-title">Regional Conversion Distribution (4,000+ Total)</h3>
+                <div class="chart-container">
+                    <canvas id="regionalChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Fuel Type Efficiency Comparison -->
+            <div class="chart-card">
+                <h3 class="chart-title">Fuel System Efficiency Comparison (%)</h3>
+                <div class="chart-container">
+                    <canvas id="efficiencyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Takeaways Section -->
+        <div class="takeaways">
+            <h2>
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                Key Insights from Tiger Automotive's Conversion Data
+            </h2>
+            
+            <div class="takeaways-grid">
+                <div class="takeaway-item">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                        </svg>
+                        Market Leadership in Indonesia
+                    </h3>
+                    <p>With 2,500+ conversions (62.5% of total portfolio), Indonesia represents Tiger Automotive's largest market success, driven by palm oil logistics and industrial transport demand for cleaner fuel alternatives.</p>
+                </div>
+
+                <div class="takeaway-item">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M9 11H7v6h2v-6zm4 0h-2v6h2v-6zm4 0h-2v6h2v-6zM4 3v2h16V3H4zm2 4v12h12V7H6z"/>
+                        </svg>
+                        Superior Dedicated System Efficiency
+                    </h3>
+                    <p>Tiger's dedicated fuel systems achieve nearly 100% combustion efficiency compared to 70-75% efficiency of typical dual-fuel competitors, resulting in higher mileage and lower maintenance costs.</p>
+                </div>
+
+                <div class="takeaway-item">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                        Proven ROI Performance
+                    </h3>
+                    <p>Fleet operators achieve 18-30 month payback periods with up to 30% operating cost reduction, making Tiger's conversions a financially attractive sustainability solution for ASEAN transport companies.</p>
+                </div>
+
+                <div class="takeaway-item">
+                    <h3>
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.5 6L12 10.5 8.5 8 12 5.5 15.5 8zM12 19c-3.87 0-7-3.13-7-7 0-.88.16-1.73.46-2.5L12 15l6.54-5.5c.3.77.46 1.62.46 2.5 0 3.87-3.13 7-7 7z"/>
+                        </svg>
+                        Comprehensive Fuel Technology Portfolio
+                    </h3>
+                    <p>Beyond primary LNG/BioLNG focus, Tiger supports CNG, BioCNG, and generator conversions, positioning as ASEAN's most versatile clean fuel conversion partner across multiple transport and power applications.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Wait for DOM to load
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            /* ========== DATA INJECTION AREA ========== */
+            // Regional conversion data based on Tiger Automotive's 4,000+ conversions
+            const regionalData = {
+                labels: ['Indonesia', 'Thailand', 'Other ASEAN'],
+                datasets: [{
+                    label: 'Vehicle Conversions',
+                    data: [2500, 1000, 500], // Total: 4,000 conversions
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)'
+                    ],
+                    borderWidth: 2,
+                    hoverOffset: 15
+                }]
+            };
+
+            // Efficiency comparison data highlighting Tiger's dedicated system advantage
+            const efficiencyData = {
+                labels: ['Tiger Dedicated LNG/BioLNG', 'Competitor Dual-Fuel', 'Standard CNG Systems', 'BioCNG Systems'],
+                datasets: [{
+                    label: 'Combustion Efficiency (%)',
+                    data: [98, 72, 85, 88], // Tiger's near 100% vs competitors' 70-75%
+                    backgroundColor: [
+                        'rgba(76, 175, 80, 0.8)',  // Green for Tiger (best)
+                        'rgba(255, 152, 0, 0.8)',  // Orange for competitors
+                        'rgba(33, 150, 243, 0.8)', // Blue for CNG
+                        'rgba(156, 39, 176, 0.8)'  // Purple for BioCNG
+                    ],
+                    borderColor: [
+                        'rgba(76, 175, 80, 1)',
+                        'rgba(255, 152, 0, 1)',
+                        'rgba(33, 150, 243, 1)',
+                        'rgba(156, 39, 176, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            };
+
+            /* ========== CHART.JS CONFIGURATION ========== */
+            // Common responsive options
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'white',
+                            font: {
+                                size: 12
+                            },
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            };
+
+            // Regional Distribution Doughnut Chart
+            const regionalCtx = document.getElementById('regionalChart').getContext('2d');
+            new Chart(regionalCtx, {
+                type: 'doughnut',
+                data: regionalData,
+                options: {
+                    ...commonOptions,
+                    cutout: '60%',
+                    plugins: {
+                        ...commonOptions.plugins,
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed * 100) / total).toFixed(1);
+                                    return `${context.label}: ${context.parsed.toLocaleString()} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Efficiency Comparison Bar Chart
+            const efficiencyCtx = document.getElementById('efficiencyChart').getContext('2d');
+            new Chart(efficiencyCtx, {
+                type: 'bar',
+                data: efficiencyData,
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                color: 'white',
+                                font: {
+                                    size: 11
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: 'white',
+                                font: {
+                                    size: 10
+                                },
+                                maxRotation: 45
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        ...commonOptions.plugins,
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            /* ========== RESPONSIVENESS HANDLING ========== */
+            // Handle window resize for optimal chart display
+            window.addEventListener('resize', function() {
+                // Charts automatically resize due to responsive: true setting
+                // Additional custom responsive logic can be added here if needed
+            });
+        });
+    </script>
+</body>
+</html>
